@@ -5,29 +5,91 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MPR Viewer</title>
     <style>
-        body { margin: 0; }
-        canvas { display: block; }
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #2c3e50, #4ca1af);
+            color: #fff;
+        }
+
+        #container {
+            width: 80vw;
+            height: 70vh;
+            background: #1c1c1c;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+        }
+
+        #upload-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        #upload-label {
+            padding: 12px 30px;
+            background-color: #4ca1af;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #upload-label:hover {
+            background-color: #3b8891;
+        }
+
+        #upload-label:active {
+            background-color: #327278;
+        }
+
+        #upload-text {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
-    <input type="file" id="fileInput" accept=".mpr,.fbx" />
     <div id="container"></div>
     
+    <div id="upload-container">
+        <label id="upload-label" for="fileInput">
+            <span id="upload-text">Choose MPR/FBX File</span>
+        </label>
+        <input type="file" id="fileInput" accept=".mpr,.fbx" />
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/FBXLoader.js"></script>
 
     <script>
         let scene, camera, renderer, fbxLoader;
-        
+
         function init() {
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(document.getElementById('container').clientWidth, document.getElementById('container').clientHeight);
             document.getElementById('container').appendChild(renderer.domElement);
-            
+            renderer.setClearColor(0x202020, 1); // Dark background for the scene
+
             fbxLoader = new THREE.FBXLoader();
             camera.position.z = 5;
+
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(5, 10, 7).normalize();
+            scene.add(light);
 
             function animate() {
                 requestAnimationFrame(animate);
@@ -44,6 +106,7 @@
                 reader.onload = function(e) {
                     const buffer = e.target.result;
                     fbxLoader.parse(buffer, '', function(object) {
+                        object.scale.set(0.01, 0.01, 0.01); // Adjusting scale for large models
                         scene.add(object);
                     });
                 }
